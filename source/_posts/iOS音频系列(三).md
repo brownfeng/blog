@@ -1,5 +1,6 @@
 ---
 title: iOS音频系列(三)--AudioQueue
+date: 2016-07-27
 tags:
 - iOS
 - CoreAudio

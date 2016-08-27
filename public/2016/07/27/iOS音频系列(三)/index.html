@@ -1,0 +1,778 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="iOS,CoreAudio,AudioQueue," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本篇是AudioQueue的官方文档的笔记。Audio Queue Services可以play和record以下三类任何audio data：
+
+Linear PCM.
+Any compressed format supported natively on the Apple platform you are developing for.
+Any other format for which">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS音频系列(三)--AudioQueue">
+<meta property="og:url" content="http://yoursite.com/2016/07/27/iOS音频系列(三)/index.html">
+<meta property="og:site_name" content="pp锅的小站">
+<meta property="og:description" content="本篇是AudioQueue的官方文档的笔记。Audio Queue Services可以play和record以下三类任何audio data：
+
+Linear PCM.
+Any compressed format supported natively on the Apple platform you are developing for.
+Any other format for which">
+<meta property="og:image" content="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/recording_architecture_2x.png">
+<meta property="og:image" content="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/playback_architecture_2x.png">
+<meta property="og:image" content="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/recording_callback_function_2x.png">
+<meta property="og:image" content="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/playback_callback_function_2x.png">
+<meta property="og:image" content="https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/recording_codec_2x.png">
+<meta property="og:image" content="https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/playback_codec_2x.png">
+<meta property="og:updated_time" content="2016-08-27T04:07:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS音频系列(三)--AudioQueue">
+<meta name="twitter:description" content="本篇是AudioQueue的官方文档的笔记。Audio Queue Services可以play和record以下三类任何audio data：
+
+Linear PCM.
+Any compressed format supported natively on the Apple platform you are developing for.
+Any other format for which">
+<meta name="twitter:image" content="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/recording_architecture_2x.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/07/27/iOS音频系列(三)/"/>
+
+  <title> iOS音频系列(三)--AudioQueue | pp锅的小站 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">pp锅的小站</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">初入iOS开发路上的小菜鸟~</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                iOS音频系列(三)--AudioQueue
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-27T00:00:00+08:00" content="2016-07-27">
+              2016-07-27
+            </time>
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/07/27/iOS音频系列(三)/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/27/iOS音频系列(三)/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本篇是AudioQueue的官方文档的笔记。Audio Queue Services可以play和record以下三类任何audio data：</p>
+<ul>
+<li>Linear PCM.</li>
+<li>Any compressed format supported natively on the Apple platform you are developing for.</li>
+<li>Any other format for which a user has an installed codec.</li>
+</ul>
+<p>对于最后一种类型，我们可以在使用AudioQueue同时自己将自己需要的format转化成LPCM。AudioQueue是对mic和speaker的高度抽象，同时可以非常简单的时间音频codecs。与此同时，它也有一些高级功能，例如多个音频的同步播放，回放等等。</p>
+<hr>
+<h2 id="About-Audio-Queues"><a href="#About-Audio-Queues" class="headerlink" title="About Audio Queues"></a>About Audio Queues</h2><p>这章会了解到audio queue的功能，结构体，以及内部运行的机理。具体的内容包括audio queues，audio queue buffers，audio queue会使用到的callback等。还有就是audio queue的状态以及参数。</p>
+<h3 id="What-Is-an-Audio-Queue"><a href="#What-Is-an-Audio-Queue" class="headerlink" title="What Is an Audio Queue?"></a>What Is an Audio Queue?</h3><p>An audio queue 是iOS中play和record audio的对象.底层是<code>AudioQueueRef</code>。Audio queue可以完成以下工作：</p>
+<ul>
+<li>Connecting to audio hardware</li>
+<li>Managing memory</li>
+<li>Employing codecs, as needed, for compressed audio formats</li>
+<li>Mediating recording or playback</li>
+</ul>
+<h4 id="Audio-Queue-Architecture"><a href="#Audio-Queue-Architecture" class="headerlink" title="Audio Queue Architecture"></a>Audio Queue Architecture</h4><p>Audio queue的具体结构有以下几个部分构成：</p>
+<ul>
+<li>A set of <strong>audio queue buffers</strong>, each of which is a temporary repository for some audio data</li>
+<li>A <strong>buffer queue</strong>, an ordered list for the audio queue buffers</li>
+<li>An <strong>audio queue callback</strong> function, that you write</li>
+</ul>
+<p>根据我们使用audio queue的用途（record or play），具体的结构略有不同，仅仅只是callback函数函数的内容不同。</p>
+<h4 id="Audio-Queues-for-Recording"><a href="#Audio-Queues-for-Recording" class="headerlink" title="Audio Queues for Recording"></a>Audio Queues for Recording</h4><p>一个用于record 的audio queue，需要使用<code>AudioQueueNewInput</code>方法创建，它的具体结构如图：</p>
+<p><img src="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/recording_architecture_2x.png" alt="A recording audio queue"></p>
+<h4 id="Audio-Queues-for-Playback"><a href="#Audio-Queues-for-Playback" class="headerlink" title="Audio Queues for Playback"></a>Audio Queues for Playback</h4><p>一个用于play的audio queue，需要使用<code>AudioQueueNewOutput</code>函数创建，</p>
+<p><img src="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/playback_architecture_2x.png" alt="A playback audio queue"></p>
+<h4 id="Audio-Queue-Buffers"><a href="#Audio-Queue-Buffers" class="headerlink" title="Audio Queue Buffers"></a>Audio Queue Buffers</h4><p><strong>audio queue buffer</strong>的数据结构如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> AudioQueueBuffer &#123;</div><div class="line">    <span class="keyword">const</span> <span class="built_in">UInt32</span>   mAudioDataBytesCapacity;</div><div class="line">    <span class="keyword">void</span> *<span class="keyword">const</span>    mAudioData;</div><div class="line">    <span class="built_in">UInt32</span>         mAudioDataByteSize;</div><div class="line">    <span class="keyword">void</span>           *mUserData;</div><div class="line">&#125; AudioQueueBuffer;</div><div class="line"><span class="keyword">typedef</span> AudioQueueBuffer *AudioQueueBufferRef;</div></pre></td></tr></table></figure>
+<p>其中<strong>mAudioData</strong>字段表示这个buffer中的有用数据的地址，其他的字段用来辅助audio queue来管理使用这个buffer。一个audio queue可以使用任何数目的buffers。但是我们一般选择3个，比较好管理。</p>
+<p>Audio queue通过下面的方式管理它们内部的buffers：</p>
+<ul>
+<li>An audio queue allocates a buffer when you call the AudioQueueAllocateBuffer function.</li>
+<li>When you release an audio queue by calling the AudioQueueDispose function, the queue releases its buffers.</li>
+</ul>
+<h3 id="The-Buffer-Queue-and-Enqueuing"><a href="#The-Buffer-Queue-and-Enqueuing" class="headerlink" title="The Buffer Queue and Enqueuing"></a>The Buffer Queue and Enqueuing</h3><p>buffer queue是由audio buffers组成的，是audio queue中的buffers。我们前面介绍了audio queue是如何使用callback管理内部的buffers。不论当前是用于record或者是pleyback，将buffer放到audio queue都是需要我们在callback函数中去手动调用的。</p>
+<h4 id="The-Recording-Process"><a href="#The-Recording-Process" class="headerlink" title="The Recording Process"></a>The Recording Process</h4><p><img src="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/recording_callback_function_2x.png" alt="The recording process"></p>
+<ol>
+<li>In step 1 , recording begins. The audio queue fills a buffer with acquired data.</li>
+<li>In step 2, the first buffer has been filled. The audio queue invokes the callback, handing it the full buffer (buffer 1). The callback (step 3) writes the contents of the buffer to an audio file. At the same time, the audio queue fills another buffer (buffer 2) with freshly acquired data.</li>
+<li>In step 4, the callback enqueues the buffer (buffer 1) that it has just written to disk, putting it in line to be filled again. The audio queue again invokes the callback (step 5), handing it the next full buffer (buffer 2). The callback (step 6) writes the contents of this buffer to the audio file. This looping steady state continues until the user stops the recording.</li>
+</ol>
+<h4 id="The-Playback-Process"><a href="#The-Playback-Process" class="headerlink" title="The Playback Process"></a>The Playback Process</h4><p><img src="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/playback_callback_function_2x.png" alt="The playback process"></p>
+<h4 id="Controlling-the-Playback-Process"><a href="#Controlling-the-Playback-Process" class="headerlink" title="Controlling the Playback Process"></a>Controlling the Playback Process</h4><p>Audio queue buffers在queue是顺序播放的，我们可以通<code>theAudioQueueEnqueueBufferWithParameters</code>方法来进行控制</p>
+<h3 id="The-Audio-Queue-Callback-Function"><a href="#The-Audio-Queue-Callback-Function" class="headerlink" title="The Audio Queue Callback Function"></a>The Audio Queue Callback Function</h3><p>Audio queue在运行过程中会不断的调用callback函数，通常间隔时间和audio queue buffer的大小相关，一般是几秒一次。</p>
+<p>audio queue callback主要任务是将audio queue buffer归还给audio queue。callback中通过<code>AudioQueueEnqueueBuffer</code>方法将buffer加载到audio queue的最后。在playback中，可以使用<code>AudioQueueEnqueueBufferWithParameters</code>在enqueue的过程中进行更多的控制。</p>
+<h4 id="The-Recording-Audio-Queue-Callback-Function"><a href="#The-Recording-Audio-Queue-Callback-Function" class="headerlink" title="The Recording Audio Queue Callback Function"></a>The Recording Audio Queue Callback Function</h4><p>如果你仅仅使用audio queue去将record的audio data写入file system，callback的方法实现的原型如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">AudioQueueInputCallback (</div><div class="line">    <span class="keyword">void</span>                               *inUserData,</div><div class="line">    AudioQueueRef                      inAQ,</div><div class="line">    AudioQueueBufferRef                inBuffer,</div><div class="line">    <span class="keyword">const</span> AudioTimeStamp               *inStartTime,</div><div class="line">    <span class="built_in">UInt32</span>                             inNumberPacketDescriptions,</div><div class="line">    <span class="keyword">const</span> AudioStreamPacketDescription *inPacketDescs</div><div class="line">);</div></pre></td></tr></table></figure>
+<p>一个recording audio queue会触发我们注册的callback，会在callback的参数中传入所有需要的关于audio data的相关信息：</p>
+<ul>
+<li><strong>inUserData</strong> 是一个自定义的结构体，用来存储audio queueu以及audio queue buffer的状态信息，也包括AudioFileID，audio data format等。</li>
+<li><strong>inAQ</strong> 表示哪个audio queue触发这个callback。</li>
+<li><strong>inBuffer</strong> 是一个audio queue buffer，它的内容是由audio queue填充的，内部包括最新的audio data。并且这些audio data已经根据初始化时候传递的格式参数格式化好的数据。</li>
+<li><strong>inStartTime</strong> 表示这个buffer中的第一个采样的采样时间点，一般app中不太需要这个参数。</li>
+<li><strong>inNumberPacketDescriptions</strong> 表示<strong>inPacketDescs</strong>参数中的packet descriptions的个数。如果你是录入VBR format，audio queue就会在callback中提供这个参数，如果是CBR，audio queue就不会使用packet descriptions参数，这个参数会是NULL。</li>
+<li><strong>inPacketDescs</strong> 表示buffer中samples相关的一系列的packet descriptions。是否设置同上一个参数。</li>
+</ul>
+<h4 id="The-Playback-Audio-Queue-Callback-Function"><a href="#The-Playback-Audio-Queue-Callback-Function" class="headerlink" title="The Playback Audio Queue Callback Function"></a>The Playback Audio Queue Callback Function</h4><p>这个片段会介绍如果使用playing audio queue，那么callback应该的信息：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">AudioQueueOutputCallback (</div><div class="line">    <span class="keyword">void</span>                  *inUserData,</div><div class="line">    AudioQueueRef         inAQ,</div><div class="line">    AudioQueueBufferRef   inBuffer</div><div class="line">);</div></pre></td></tr></table></figure>
+<p>一个playback audio queue会触发这个callback，提供一些关于audio data的有用信息：</p>
+<ul>
+<li><strong>inUserData</strong> 见上</li>
+<li><strong>inAQ</strong> 表示哪个audio queue触发这个callback。</li>
+<li><strong>inBuffer</strong> 表示被audio queue设置为空的audio queue buffer，你需要在callback中将其内部信息填满，填充内容是你从AudioFile中读取的audio data。</li>
+</ul>
+<hr>
+<h3 id="Using-Codecs-and-Audio-Data-Formats"><a href="#Using-Codecs-and-Audio-Data-Formats" class="headerlink" title="Using Codecs and Audio Data Formats"></a>Using Codecs and Audio Data Formats</h3><p>我们日常使用Audio Queue Services时，都会使用codecs（audio data coding/decoding componets）用来在不同audio format之间进行转化。</p>
+<p>每个audio queue都有一个audio data format，可以在<code>AudioStreamBasicDescription</code>结构体中得到。当我们在ASBD中指定了<code>mFormatID</code>以后，audio queue在向buffer中填充数据时候就会使用相应的codec。同样如果指定sample rate和channel count，audio queue也会同样。具体的过程见下图：</p>
+<p><img src="https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/recording_codec_2x.png" alt="Audio format conversion during recording"></p>
+<ul>
+<li>第一步中，app会告知audio queue开始record，同时告诉它使用的的data format。</li>
+<li>第二步中，audio queue将获取到的new data使用codec转化成目标format。然后audio queue会调用callback函数，传入格式化以后的audio data。</li>
+<li>第三步中，callback函数会将格式化以后的audio data写入file中。</li>
+</ul>
+<p>整个过程中，callback函数压根就不需要知道data fromat是什么。</p>
+<p><img src="https://developer.apple.com/library/ios/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/Art/playback_codec_2x.png" alt="Audio format conversion during playback"></p>
+<p>在播放过程中，正好和录音过程相反，只需要在创建audio queue时候将data format告知即可。</p>
+<hr>
+<h3 id="Audio-Queue-Control-and-State"><a href="#Audio-Queue-Control-and-State" class="headerlink" title="Audio Queue Control and State"></a>Audio Queue Control and State</h3><p>audio queue在创建和销毁的过程有一个声明周期。app需要管理它的声明周期，控制它的状态，具体控制状态的方法如下：</p>
+<ul>
+<li>Start (<code>AudioQueueStart</code>).初始化audio queue用来record或者playback。</li>
+<li>Prime (<code>AudioQueuePrime</code>).对于playback，在调用<code>AudioQueueStart</code>挚爱去哪调用确保数据可用，这个方法和record没有关系。</li>
+<li>Stop (<code>AudioQueueStop</code>). 调用以后会重置audio queue，然后会停止record或者playback。在playback应用中，一般在没有audio data可以播放时候调用。</li>
+<li>Pause (<code>AudioQueuePause</code>). 在record或者playback中调用这个方法不会影响到buffers。如果需要恢复，调用<code>AudioQueueStart</code>。</li>
+<li>Flush (<code>AudioQueueFlush</code>). 在enqueue最后一个audio queue buffer以后调用这个方法，确保所有的数据被record或者play（主要是在midst processing的数据）。</li>
+<li>Reset (<code>AudioQueueReset</code>). 调用以后立即停止audio queue，然后将所有的buffers移除，重置所有的DSP状态等到。</li>
+</ul>
+<p>在调用<code>AudioQueueStop</code>方法时候有两种模式：同步和异步。</p>
+<ul>
+<li>Synchronous stopping happens immediately, without regard for previously buffered audio data.</li>
+<li>Asynchronous stopping happens after all queued buffers have been played or recorded.</li>
+</ul>
+<hr>
+<h2 id="Recording-Audio"><a href="#Recording-Audio" class="headerlink" title="Recording Audio"></a>Recording Audio</h2><p>当我们的record使用Audio Queue Services，存储的路径可以是磁盘上的任何地方，或者网络，或者内存中。这部分内容记录大多数的使用场景，存储在磁盘中。</p>
+<p>具体的步骤如下：</p>
+<ol>
+<li>定义一个结构体去存储状态，format，文件路径等信息。</li>
+<li>完成audio queue callback函数，其中将record以后的数据进行存储。</li>
+<li>为audio queue buffers计算出合适的大小，并且在file中写入magic cookies。</li>
+<li>初始化自定义的结构体</li>
+<li>创建recording audio queue，然后给它创建3个audio queue buffers，然后创建一个file用来存储record以后的audio data。</li>
+<li>启动audio queue</li>
+<li>当audio queue停止以后，dispose它以及buffers</li>
+</ol>
+<p>具体的实现内容可以参考Apple官方文档：<a href="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/AQRecord/RecordingAudio.html" target="_blank" rel="external">Recording Audio</a>。</p>
+<h2 id="Playing-Audio"><a href="#Playing-Audio" class="headerlink" title="Playing Audio"></a>Playing Audio</h2><p>当我们使用Audio Queue Service去play audio时，音频源文件可以是任何在disk file或者memory中，这部分内容是如何用Audio Queue Service播放存储在disk上的audio file。</p>
+<p>具体的步骤如下：</p>
+<ol>
+<li>定义一个结构体管理Audio queue的状态，format，file path等</li>
+<li>完成audio queue callback函数去进行实际的播放</li>
+<li>创建一个函数用来计算最适合的audio queue buffer的大小</li>
+<li>打开audio file，确定它的audio data format</li>
+<li>创建audio queue，对它进行配置</li>
+<li>为audio queue创建buffers，然后启动audio queue，当播放结束，callback让audio queue停止播放</li>
+<li>销毁audio queue</li>
+</ol>
+<p>具体的实现内容可以参考Apple官方文档：<a href="https://developer.apple.com/library/prerelease/content/documentation/MusicAudio/Conceptual/AudioQueueProgrammingGuide/AQPlayback/PlayingAudio.html" target="_blank" rel="external">Playing Audio</a>。</p>
+<h2 id="可运行的Demo"><a href="#可运行的Demo" class="headerlink" title="可运行的Demo"></a>可运行的Demo</h2><p>请参考我的github: <a href="https://github.com/brownfeng/AudioQueueServiceDemo" target="_blank" rel="external">https://github.com/brownfeng/AudioQueueServiceDemo</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag">#iOS</a>
+          
+            <a href="/tags/CoreAudio/" rel="tag">#CoreAudio</a>
+          
+            <a href="/tags/AudioQueue/" rel="tag">#AudioQueue</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/26/RunLoop总结/" rel="next" title="RunLoop学习总结">
+                <i class="fa fa-chevron-left"></i> RunLoop学习总结
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/28/iOS音频系列(四)/" rel="prev" title="iOS音频系列(四)--音频的文件格式和数据格式">
+                iOS音频系列(四)--音频的文件格式和数据格式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/07/27/iOS音频系列(三)/"
+           data-title="iOS音频系列(三)--AudioQueue" data-url="http://yoursite.com/2016/07/27/iOS音频系列(三)/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="brownfeng" />
+          <p class="site-author-name" itemprop="name">brownfeng</p>
+          <p class="site-description motion-element" itemprop="description">行走路上,记录风景~</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/brownfeng" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/1980801167" target="_blank" title="微博">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  微博
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#About-Audio-Queues"><span class="nav-number">1.</span> <span class="nav-text">About Audio Queues</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-Is-an-Audio-Queue"><span class="nav-number">1.1.</span> <span class="nav-text">What Is an Audio Queue?</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Audio-Queue-Architecture"><span class="nav-number">1.1.1.</span> <span class="nav-text">Audio Queue Architecture</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Audio-Queues-for-Recording"><span class="nav-number">1.1.2.</span> <span class="nav-text">Audio Queues for Recording</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Audio-Queues-for-Playback"><span class="nav-number">1.1.3.</span> <span class="nav-text">Audio Queues for Playback</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Audio-Queue-Buffers"><span class="nav-number">1.1.4.</span> <span class="nav-text">Audio Queue Buffers</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Buffer-Queue-and-Enqueuing"><span class="nav-number">1.2.</span> <span class="nav-text">The Buffer Queue and Enqueuing</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#The-Recording-Process"><span class="nav-number">1.2.1.</span> <span class="nav-text">The Recording Process</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#The-Playback-Process"><span class="nav-number">1.2.2.</span> <span class="nav-text">The Playback Process</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Controlling-the-Playback-Process"><span class="nav-number">1.2.3.</span> <span class="nav-text">Controlling the Playback Process</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Audio-Queue-Callback-Function"><span class="nav-number">1.3.</span> <span class="nav-text">The Audio Queue Callback Function</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#The-Recording-Audio-Queue-Callback-Function"><span class="nav-number">1.3.1.</span> <span class="nav-text">The Recording Audio Queue Callback Function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#The-Playback-Audio-Queue-Callback-Function"><span class="nav-number">1.3.2.</span> <span class="nav-text">The Playback Audio Queue Callback Function</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Using-Codecs-and-Audio-Data-Formats"><span class="nav-number">1.4.</span> <span class="nav-text">Using Codecs and Audio Data Formats</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Audio-Queue-Control-and-State"><span class="nav-number">1.5.</span> <span class="nav-text">Audio Queue Control and State</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Recording-Audio"><span class="nav-number">2.</span> <span class="nav-text">Recording Audio</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Playing-Audio"><span class="nav-number">3.</span> <span class="nav-text">Playing Audio</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#可运行的Demo"><span class="nav-number">4.</span> <span class="nav-text">可运行的Demo</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">brownfeng</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"brownfeng"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
